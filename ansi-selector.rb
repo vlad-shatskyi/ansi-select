@@ -1,9 +1,12 @@
+# coding: utf-8
 require 'io/console'
+# TODO: use refinements, like string.inverse_video
 
 class AnsiSelector
   def initialize(options)
     @options = options
-    @current = 0
+    @highlighted = 0
+    @cursor = 0
   end
 
   def select
@@ -18,22 +21,25 @@ class AnsiSelector
 
   def clear
     system "tput el1"
-    @options[@current].size.times { system "tput cub1" }
+    @options[@highlighted].size.times { system "tput cub1" }
   end
 
   def highlight_line(index)
-    print_line(@current, highlight: false)
+    print_line(@highlighted, highlight: false)
     print_line(index, highlight: true)
+
+    @highlighted = index
   end
 
   def print
     @options.each.with_index do |_, index|
-      print_line(index, highlight: index == 0)
-      @current = index
-    end
-    STDOUT.print "\n"
+      print_line(index, highlight: index == @highlighted)
 
-    go_to_line(0)
+      unless index == @options.size - 1
+        STDOUT.print "\n"
+        @cursor += 1
+      end
+    end
   end
 
   def print_line(index, highlight:)
@@ -45,21 +51,18 @@ class AnsiSelector
     else
       STDOUT.print "#{@options[index]}"
     end
-
-
-    STDOUT.print "  #{@current}"
-
-    @current += 1
   end
 
   def go_to_line(index)
-    return if index == @current
+    return if index == @cursor
 
-    if index > @current
-      (index - @current).times { system "tput cud1" }
+    if index > @cursor
+      (index - @cursor).times { system "tput cud1" }
     else
-      (@current - index).times { system "tput cuu1" }
+      (@cursor - index).times { system "tput cuu1" }
     end
+
+    @cursor = index
   end
 
   def read_char
@@ -71,53 +74,26 @@ class AnsiSelector
       input << STDIN.read_nonblock(3) rescue nil
       input << STDIN.read_nonblock(2) rescue nil
     end
-  ensure
-    STDIN.echo = true
-    STDIN.cooked!
 
-    return input
+    input
   end
 
   def show_single_key
     c = read_char
 
     case c
-    when " "
-      puts "SPACE"
-    when "\t"
-      puts "TAB"
-    when "\r"
-      puts "RETURN"
-    when "\n"
-      puts "LINE FEED"
-    when "\e"
-      puts "ESCAPE"
     when "\e[A"
       "UP ARROW"
-      highlight_line(@current - 1)
+      highlight_line(@highlighted - 1) unless @highlighted == 0
     when "\e[B"
-      highlight_line(@current + 1)
-    when "\e[C"
-      puts "RIGHT ARROW"
-    when "\e[D"
-      puts "LEFT ARROW"
-    when "\177"
-      puts "BACKSPACE"
-    when "\004"
-      puts "DELETE"
-    when "\e[3~"
-      puts "ALTERNATE DELETE"
+      highlight_line(@highlighted + 1) unless @highlighted == @options.size - 1
     when "\u0003"
-      puts "CONTROL-C"
       exit 0
-    when /^.$/
-      puts "SINGLE CHAR HIT: #{c.inspect}"
     else
-      puts "SOMETHING ELSE: #{c.inspect}"
+      # nothing
     end
   end
 end
-
 
 AnsiSelector.new(
   ["Trello Issue 1",
