@@ -10,16 +10,38 @@ class AnsiSelector
   end
 
   def select
-    print
+    print_options
+    answer = ask_to_choose
+    go_to_line(@options.size)
+    clear
 
-    loop { listen_carefully_to_keyboard }
+    answer
   end
 
   private
 
+  def ask_to_choose
+    loop do
+      input = listen_carefully_to_keyboard
+
+
+      case input
+      when "\e[A", 'k'
+        highlight_line(@highlighted - 1) unless @highlighted == 0
+      when "\e[B", 'j'
+        highlight_line(@highlighted + 1) unless @highlighted == @options.size - 1
+      when "\u0003", 'q'
+        exit(0)
+      when "\r"
+        break @options[@highlighted]
+      end
+    end
+  end
+
   def clear
     system "tput el1"
-    @options[@highlighted].size.times { system "tput cub1" }
+    print "\r"
+    # @options[@highlighted].size.times { system "tput cub1" }
   end
 
   def highlight_line(index)
@@ -29,7 +51,7 @@ class AnsiSelector
     @highlighted = index
   end
 
-  def print
+  def print_options
     @options.each.with_index do |_, index|
       print_line(index, highlight: index == @highlighted)
 
@@ -38,6 +60,8 @@ class AnsiSelector
         @cursor += 1
       end
     end
+
+    go_to_line(0)
   end
 
   def print_line(index, highlight:)
@@ -73,21 +97,8 @@ class AnsiSelector
       input << STDIN.read_nonblock(2) rescue nil
     end
 
-    keymap.fetch(input, -> {}).call
-  end
-
-  def keymap
-    {
-      "\e[A" => -> { highlight_line(@highlighted - 1) unless @highlighted == 0 },
-      "\e[B" => -> { highlight_line(@highlighted + 1) unless @highlighted == @options.size - 1 },
-      "\u0003" => -> { exit(0) }
-    }
+    input
   end
 end
 
-AnsiSelector.new(
-  ["Trello Issue 1",
-    "Trello Issue 2",
-    "Trello Issue 3",
-    "Trello Issue 4"]
-).select
+puts("You chose " + AnsiSelector.new(["Trello Issue 1", "Trello Issue 2", "Trello Issue 3", "Trello Issue 4"]).select)
