@@ -1,5 +1,5 @@
 # coding: utf-8
-require 'io/console'
+require "io/console"
 # TODO: use refinements, like string.inverse_video
 
 class AnsiSelector
@@ -11,7 +11,9 @@ class AnsiSelector
 
   def select
     print_options
+
     answer = ask_to_choose
+
     go_to_line(@options.size)
     clear
 
@@ -26,13 +28,13 @@ class AnsiSelector
 
 
       case input
-      when "\e[A", 'k'
+      when "\e[A", "k"
         highlight_line(@highlighted - 1) unless @highlighted == 0
-      when "\e[B", 'j'
+      when "\e[B", "j"
         highlight_line(@highlighted + 1) unless @highlighted == @options.size - 1
-      when "\u0003", 'q'
+      when "\u0003", "q"
         exit(0)
-      when "\r"
+      when "\r", " "
         break @options[@highlighted]
       end
     end
