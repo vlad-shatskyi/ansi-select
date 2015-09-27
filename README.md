@@ -26,6 +26,7 @@ or as a standalone executable:
 ```bash
 echo some words to choose from | tr ' ' '\n' | ansi-select
 cd $(ls -d */ | ansi-select) # Go to a visually selected subdirectory.
+git checkout $(git branch | ansi-select) # The same, but with git branches.
 ```
 
 ## Development
