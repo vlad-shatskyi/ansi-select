@@ -12,6 +12,7 @@ module Ansi
     CURSOR_DOWN_CODE = `tput cud1`
     CARRIAGE_RETURN_KEY_CODE = `tput cr`
 
+    # @param [Array<#to_s>] options
     def initialize(options)
       @options = options
       @highlighted = 0
@@ -72,7 +73,7 @@ module Ansi
       if highlight
         stream.print "#{STANDOUT_MODE_CODE}#{@options[index]}#{EXIT_STANDOUT_MODE_CODE}"
       else
-        stream.print "#{@options[index]}"
+        stream.print @options[index]
       end
     end
 
