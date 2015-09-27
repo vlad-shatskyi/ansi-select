@@ -17,48 +17,32 @@ module Ansi
     # @param [Array<#to_s>] options
     def initialize(options)
       @options = options
+
       @highlighted = 0
       @cursor = 0
     end
 
+    # @return [#to_s] option
     def select
-      File.open('/dev/tty', 'w+') do |tty|
-        print_options(tty)
-        answer = ask_to_choose(tty)
-        go_to_line(@options.size, stream: tty)
-        answer
-      end
+      print_options
+      answer = ask_to_choose
+      go_to_line(@options.size)
+
+      answer
+    ensure
+      tty.close
     end
 
     private
 
-    def ask_to_choose(tty)
-      loop do
-        input = listen_carefully_to_keyboard(tty)
-
-        case input
-        when "\u0003", "q"
-          exit(0)
-        when CODES[:carriage_return_key], " "
-          break @options[@highlighted]
-        when "\e[A", "k", CODES[:cursor_up]
-          highlight_line(@highlighted - 1, stream: tty) unless @highlighted == 0
-        when "\e[B", "j", CODES[:cursor_down]
-          highlight_line(@highlighted + 1, stream: tty) unless @highlighted == @options.size - 1
-        end
-      end
+    # @return [File]
+    def tty
+      @tty ||= File.open('/dev/tty', 'w+')
     end
 
-    def highlight_line(index, stream:)
-      print_line(@highlighted, highlight: false, stream: stream)
-      print_line(index, highlight: true, stream: stream)
-
-      @highlighted = index
-    end
-
-    def print_options(tty)
+    def print_options
       @options.each.with_index do |_, index|
-        print_line(index, highlight: index == @highlighted, stream: tty)
+        print_line(index, highlight: index == @highlighted)
 
         unless index == @options.size - 1
           tty.print $/ # This strange thing is a cross-platform new line.
@@ -66,34 +50,11 @@ module Ansi
         end
       end
 
-      go_to_line(0, stream: tty)
+      go_to_line(0)
     end
 
-    def print_line(index, highlight:, stream:)
-      go_to_line(index, stream: stream)
-
-      if highlight
-        stream.print "#{CODES[:standout_mode]}#{@options[index]}#{CODES[:exit_standout_mode]}"
-      else
-        stream.print @options[index]
-      end
-    end
-
-    def go_to_line(index, stream:)
-      if index == @cursor
-        # do nothing
-      elsif index > @cursor
-        (index - @cursor).times { stream.print CODES[:cursor_down] }
-      else
-        (@cursor - index).times { stream.print CODES[:cursor_up] }
-      end
-
-      @cursor = index
-      stream.print CODES[:carriage_return_key]
-    end
-
-    # @param [File] tty
-    def listen_carefully_to_keyboard(tty)
+    # @return [String]
+    def listen_carefully_to_keyboard
       tty.noecho do
         tty.raw do
           input = tty.getc.chr
@@ -105,6 +66,58 @@ module Ansi
           input
         end
       end
+    end
+
+    # @return [#to_s]
+    def ask_to_choose
+      loop do
+        input = listen_carefully_to_keyboard
+
+        case input
+        when "\u0003", "q"
+          exit(0)
+        when CODES[:carriage_return_key], " "
+          break @options[@highlighted]
+        when "\e[A", "k", CODES[:cursor_up]
+          highlight_line(@highlighted - 1) unless @highlighted == 0
+        when "\e[B", "j", CODES[:cursor_down]
+          highlight_line(@highlighted + 1) unless @highlighted == @options.size - 1
+        end
+      end
+    end
+
+    # @param [Fixnum] index
+    # @param [Boolean] highlight
+    def print_line(index, highlight:)
+      go_to_line(index)
+
+      if highlight
+        tty.print "#{CODES[:standout_mode]}#{@options[index]}#{CODES[:exit_standout_mode]}"
+      else
+        tty.print @options[index]
+      end
+    end
+
+    # @param [Fixnum] index
+    def highlight_line(index)
+      print_line(@highlighted, highlight: false)
+      print_line(index, highlight: true)
+
+      @highlighted = index
+    end
+
+    # @param [Fixnum] index
+    def go_to_line(index)
+      if index == @cursor
+        # do nothing
+      elsif index > @cursor
+        (index - @cursor).times { tty.print CODES[:cursor_down] }
+      else
+        (@cursor - index).times { tty.print CODES[:cursor_up] }
+      end
+
+      @cursor = index
+      tty.print CODES[:carriage_return_key]
     end
   end
 end
