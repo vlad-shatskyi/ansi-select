@@ -12,9 +12,7 @@ class AnsiSelector
   def select
     print
 
-    loop do
-      show_single_key
-    end
+    loop { listen_carefully_to_keyboard }
   end
 
   private
@@ -36,7 +34,7 @@ class AnsiSelector
       print_line(index, highlight: index == @highlighted)
 
       unless index == @options.size - 1
-        STDOUT.print "\n"
+        STDOUT.print "\r\n"
         @cursor += 1
       end
     end
@@ -65,7 +63,7 @@ class AnsiSelector
     @cursor = index
   end
 
-  def read_char
+  def listen_carefully_to_keyboard
     STDIN.echo = false
     STDIN.raw!
 
@@ -75,23 +73,15 @@ class AnsiSelector
       input << STDIN.read_nonblock(2) rescue nil
     end
 
-    input
+    keymap.fetch(input, -> {}).call
   end
 
-  def show_single_key
-    c = read_char
-
-    case c
-    when "\e[A"
-      "UP ARROW"
-      highlight_line(@highlighted - 1) unless @highlighted == 0
-    when "\e[B"
-      highlight_line(@highlighted + 1) unless @highlighted == @options.size - 1
-    when "\u0003"
-      exit 0
-    else
-      # nothing
-    end
+  def keymap
+    {
+      "\e[A" => -> { highlight_line(@highlighted - 1) unless @highlighted == 0 },
+      "\e[B" => -> { highlight_line(@highlighted + 1) unless @highlighted == @options.size - 1 },
+      "\u0003" => -> { exit(0) }
+    }
   end
 end
 
