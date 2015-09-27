@@ -36,4 +36,3 @@ You can use up and down keys or j/k for navigation, and space or return key for 
 ## TODO
 
 * Support multi-select.
-* Support Ruby 1.9.

@@ -3,7 +3,6 @@
 require "ansi/select/version"
 require "io/console"
 
-# TODO: support ruby 1.9.
 module Ansi
   class Select
     CODES = {
@@ -42,7 +41,7 @@ module Ansi
 
     def print_options
       @options.each.with_index do |_, index|
-        print_line(index, highlight: index == @highlighted_line_index)
+        print_line(index, index == @highlighted_line_index)
 
         unless index == @options.size - 1
           tty.print $/ # This strange thing is a cross-platform new line.
@@ -88,7 +87,7 @@ module Ansi
 
     # @param [Fixnum] index
     # @param [Boolean] highlight
-    def print_line(index, highlight:)
+    def print_line(index, highlight)
       go_to_line(index)
 
       if highlight
@@ -100,8 +99,8 @@ module Ansi
 
     # @param [Fixnum] index
     def highlight_line(index)
-      print_line(@highlighted_line_index, highlight: false)
-      print_line(index, highlight: true)
+      print_line(@highlighted_line_index, false)
+      print_line(index, true)
 
       @highlighted_line_index = index
     end
