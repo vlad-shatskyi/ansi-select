@@ -1,3 +1,5 @@
+![](https://dl.dropboxusercontent.com/spa/dlqheu39w0arg9q/yaano147.png)
+
 ## Installation
 
     $ gem install ansi-select
