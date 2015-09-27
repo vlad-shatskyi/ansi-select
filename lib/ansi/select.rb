@@ -6,11 +6,13 @@ require "io/console"
 # TODO: support ruby 1.9.
 module Ansi
   class Select
-    STANDOUT_MODE_CODE = `tput rev`
-    EXIT_STANDOUT_MODE_CODE = `tput rmso`
-    CURSOR_UP_CODE = `tput cuu1`
-    CURSOR_DOWN_CODE = `tput cud1`
-    CARRIAGE_RETURN_KEY_CODE = `tput cr`
+    CODES = {
+      standout_mode: `tput rev`,
+      exit_standout_mode: `tput rmso`,
+      cursor_up: `tput cuu1`,
+      cursor_down: `tput cud1`,
+      carriage_return_key: `tput cr`
+    }
 
     # @param [Array<#to_s>] options
     def initialize(options)
@@ -37,11 +39,11 @@ module Ansi
         case input
         when "\u0003", "q"
           exit(0)
-        when CARRIAGE_RETURN_KEY_CODE, " "
+        when CODES[:carriage_return_key], " "
           break @options[@highlighted]
-        when "\e[A", "k", CURSOR_UP_CODE
+        when "\e[A", "k", CODES[:cursor_up]
           highlight_line(@highlighted - 1, stream: tty) unless @highlighted == 0
-        when "\e[B", "j", CURSOR_DOWN_CODE
+        when "\e[B", "j", CODES[:cursor_down]
           highlight_line(@highlighted + 1, stream: tty) unless @highlighted == @options.size - 1
         end
       end
@@ -71,7 +73,7 @@ module Ansi
       go_to_line(index, stream: stream)
 
       if highlight
-        stream.print "#{STANDOUT_MODE_CODE}#{@options[index]}#{EXIT_STANDOUT_MODE_CODE}"
+        stream.print "#{CODES[:standout_mode]}#{@options[index]}#{CODES[:exit_standout_mode]}"
       else
         stream.print @options[index]
       end
@@ -81,13 +83,13 @@ module Ansi
       if index == @cursor
         # do nothing
       elsif index > @cursor
-        (index - @cursor).times { stream.print CURSOR_DOWN_CODE }
+        (index - @cursor).times { stream.print CODES[:cursor_down] }
       else
-        (@cursor - index).times { stream.print CURSOR_UP_CODE }
+        (@cursor - index).times { stream.print CODES[:cursor_up] }
       end
 
       @cursor = index
-      stream.print CARRIAGE_RETURN_KEY_CODE
+      stream.print CODES[:carriage_return_key]
     end
 
     # @param [File] tty
