@@ -38,12 +38,6 @@ module Ansi
       end
     end
 
-    def clear
-      # system "tput el1"
-      print "\r"
-      # @options[@highlighted].size.times { system "tput cub1" }
-    end
-
     def highlight_line(index)
       print_line(@highlighted, highlight: false)
       print_line(index, highlight: true)
@@ -84,7 +78,7 @@ module Ansi
       end
 
       @cursor = index
-      clear
+      print "\r"
     end
 
     def listen_carefully_to_keyboard
