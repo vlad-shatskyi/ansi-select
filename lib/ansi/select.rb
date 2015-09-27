@@ -18,8 +18,8 @@ module Ansi
     def initialize(options)
       @options = options
 
-      @highlighted = 0
-      @cursor = 0
+      @highlighted_line_index = 0
+      @cursor_line_index = 0
     end
 
     # @return [#to_s] option
@@ -42,11 +42,11 @@ module Ansi
 
     def print_options
       @options.each.with_index do |_, index|
-        print_line(index, highlight: index == @highlighted)
+        print_line(index, highlight: index == @highlighted_line_index)
 
         unless index == @options.size - 1
           tty.print $/ # This strange thing is a cross-platform new line.
-          @cursor += 1
+          @cursor_line_index += 1
         end
       end
 
@@ -77,11 +77,11 @@ module Ansi
         when "\u0003", "q"
           exit(0)
         when CODES[:carriage_return_key], " "
-          break @options[@highlighted]
+          break @options[@highlighted_line_index]
         when "\e[A", "k", CODES[:cursor_up]
-          highlight_line(@highlighted - 1) unless @highlighted == 0
+          highlight_line(@highlighted_line_index - 1) unless @highlighted_line_index == 0
         when "\e[B", "j", CODES[:cursor_down]
-          highlight_line(@highlighted + 1) unless @highlighted == @options.size - 1
+          highlight_line(@highlighted_line_index + 1) unless @highlighted_line_index == @options.size - 1
         end
       end
     end
@@ -100,23 +100,23 @@ module Ansi
 
     # @param [Fixnum] index
     def highlight_line(index)
-      print_line(@highlighted, highlight: false)
+      print_line(@highlighted_line_index, highlight: false)
       print_line(index, highlight: true)
 
-      @highlighted = index
+      @highlighted_line_index = index
     end
 
     # @param [Fixnum] index
     def go_to_line(index)
-      if index == @cursor
+      if index == @cursor_line_index
         # do nothing
-      elsif index > @cursor
-        (index - @cursor).times { tty.print CODES[:cursor_down] }
+      elsif index > @cursor_line_index
+        (index - @cursor_line_index).times { tty.print CODES[:cursor_down] }
       else
-        (@cursor - index).times { tty.print CODES[:cursor_up] }
+        (@cursor_line_index - index).times { tty.print CODES[:cursor_up] }
       end
 
-      @cursor = index
+      @cursor_line_index = index
       tty.print CODES[:carriage_return_key]
     end
   end
