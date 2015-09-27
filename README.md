@@ -1,9 +1,3 @@
-# Ansi::Select
-
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/ansi/select`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
-
 ## Installation
 
 Add this line to your application's Gemfile:
@@ -22,7 +16,16 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+You can use it from Ruby:
+```bash
+ruby -r ansi/select -e 'print "You chose ", Ansi::Select.new(["some", "words", "to", "choose", "from"]).select'
+```
+
+or as a standalone executable:
+
+```bash
+echo some words to choose from | tr ' ' '\n' | ansi-select
+```
 
 ## Development
 
