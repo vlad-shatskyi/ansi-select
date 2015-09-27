@@ -88,15 +88,16 @@ class AnsiSelector
   end
 
   def listen_carefully_to_keyboard
-    STDIN.echo = false
-    STDIN.raw do
-      input = STDIN.getc.chr
-      if input == "\e" then
-        input << STDIN.read_nonblock(3) rescue nil
-        input << STDIN.read_nonblock(2) rescue nil
-      end
+    STDIN.noecho do
+      STDIN.raw do
+        input = STDIN.getc.chr
+        if input == "\e"
+          input << STDIN.read_nonblock(3) rescue nil
+          input << STDIN.read_nonblock(2) rescue nil
+        end
 
-      input
+        input
+      end
     end
   end
 end
