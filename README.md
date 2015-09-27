@@ -30,7 +30,8 @@ to `#to_s` and returning one of them instead of a string.
 
 ## Keyboard
 
-You can use up and down keys or j/k for navigation, and space or return key for choosing an option.
+You can use up and down keys or `j`/`k` for navigation, and space or return key for choosing an option.
+If you've changed your mind, you can quit with Ctrl+C or `q`.
 
 
 ## TODO
