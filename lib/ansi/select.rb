@@ -1,6 +1,5 @@
 # coding: utf-8
 
-require "ansi/select/version"
 require "io/console"
 
 module Ansi
