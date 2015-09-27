@@ -1,0 +1,5 @@
+#!/usr/bin/env ruby
+
+require 'ansi/select'
+
+puts Ansi::Select.new(STDIN.readlines).select

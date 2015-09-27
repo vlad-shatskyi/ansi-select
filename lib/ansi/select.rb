@@ -13,12 +13,8 @@ module Ansi
 
     def select
       print_options
-
       answer = ask_to_choose
-
       go_to_line(@options.size)
-      clear
-
       answer
     end
 
@@ -43,7 +39,7 @@ module Ansi
     end
 
     def clear
-      system "tput el1"
+      # system "tput el1"
       print "\r"
       # @options[@highlighted].size.times { system "tput cub1" }
     end
@@ -70,7 +66,6 @@ module Ansi
 
     def print_line(index, highlight:)
       go_to_line(index)
-      clear
 
       if highlight
         system "printf \"$(tput rev)#{@options[index]}$(tput rmso)\""
@@ -80,15 +75,16 @@ module Ansi
     end
 
     def go_to_line(index)
-      return if index == @cursor
-
-      if index > @cursor
+      if index == @cursor
+        # do nothing
+      elsif index > @cursor
         (index - @cursor).times { system "tput cud1" }
       else
         (@cursor - index).times { system "tput cuu1" }
       end
 
       @cursor = index
+      clear
     end
 
     def listen_carefully_to_keyboard
