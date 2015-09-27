@@ -3,8 +3,15 @@
 require "ansi/select/version"
 require "io/console"
 
+# TODO: support ruby 1.9.
 module Ansi
   class Select
+    STANDOUT_MODE_CODE = `tput rev`
+    EXIT_STANDOUT_MODE_CODE = `tput rmso`
+    CURSOR_UP_CODE = `tput cuu1`
+    CURSOR_DOWN_CODE = `tput cud1`
+    CARRIAGE_RETURN_KEY_CODE = `tput cr`
+
     def initialize(options)
       @options = options
       @highlighted = 0
@@ -27,14 +34,14 @@ module Ansi
         input = listen_carefully_to_keyboard(tty)
 
         case input
-        when "\e[A", "k"
-          highlight_line(@highlighted - 1, stream: tty) unless @highlighted == 0
-        when "\e[B", "j"
-          highlight_line(@highlighted + 1, stream: tty) unless @highlighted == @options.size - 1
         when "\u0003", "q"
           exit(0)
-        when "\r", " "
+        when CARRIAGE_RETURN_KEY_CODE
           break @options[@highlighted]
+        when "\e[A", "k", CURSOR_UP_CODE
+          highlight_line(@highlighted - 1, stream: tty) unless @highlighted == 0
+        when "\e[B", "j", CURSOR_DOWN_CODE
+          highlight_line(@highlighted + 1, stream: tty) unless @highlighted == @options.size - 1
         end
       end
     end
@@ -51,7 +58,7 @@ module Ansi
         print_line(index, highlight: index == @highlighted, stream: tty)
 
         unless index == @options.size - 1
-          tty.print "\r\n"
+          tty.print $/ # This strange thing is a cross-platform new line.
           @cursor += 1
         end
       end
@@ -63,7 +70,7 @@ module Ansi
       go_to_line(index, stream: stream)
 
       if highlight
-        stream.print "\e[7;m#{@options[index]}\e[0;m"
+        stream.print "#{STANDOUT_MODE_CODE}#{@options[index]}#{EXIT_STANDOUT_MODE_CODE}"
       else
         stream.print "#{@options[index]}"
       end
@@ -73,13 +80,13 @@ module Ansi
       if index == @cursor
         # do nothing
       elsif index > @cursor
-        (index - @cursor).times { stream.print "\e[B" }
+        (index - @cursor).times { stream.print CURSOR_DOWN_CODE }
       else
-        (@cursor - index).times { stream.print "\e[A" }
+        (@cursor - index).times { stream.print CURSOR_UP_CODE }
       end
 
       @cursor = index
-      stream.print "\r"
+      stream.print CARRIAGE_RETURN_KEY_CODE
     end
 
     # @param [File] tty
