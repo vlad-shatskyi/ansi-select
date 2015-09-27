@@ -12,14 +12,12 @@ module Ansi
     end
 
     def select
-      tty = File.open('/dev/tty', 'w+')
-
-      print_options(tty)
-      answer = ask_to_choose(tty)
-      go_to_line(@options.size, stream: tty)
-      answer
-    ensure
-      tty.close
+      File.open('/dev/tty', 'w+') do |tty|
+        print_options(tty)
+        answer = ask_to_choose(tty)
+        go_to_line(@options.size, stream: tty)
+        answer
+      end
     end
 
     private
@@ -65,7 +63,7 @@ module Ansi
       go_to_line(index, stream: stream)
 
       if highlight
-        system "printf \"$(tput rev)#{@options[index]}$(tput rmso)\" > /dev/tty"
+        stream.print "\e[7;m#{@options[index]}\e[0;m"
       else
         stream.print "#{@options[index]}"
       end
@@ -75,9 +73,9 @@ module Ansi
       if index == @cursor
         # do nothing
       elsif index > @cursor
-        (index - @cursor).times { system "tput cud1 > /dev/tty" }
+        (index - @cursor).times { stream.print "\e[B" }
       else
-        (@cursor - index).times { system "tput cuu1 > /dev/tty" }
+        (@cursor - index).times { stream.print "\e[A" }
       end
 
       @cursor = index
