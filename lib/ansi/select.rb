@@ -1,10 +1,10 @@
 # coding: utf-8
 
-require "ansi/selector/version"
+require "ansi/select/version"
 require "io/console"
 
 module Ansi
-  class Selector
+  class Select
     def initialize(options)
       @options = options
       @highlighted = 0

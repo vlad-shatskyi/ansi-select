@@ -1,5 +1,5 @@
 module Ansi
-  class Selector
+  class Select
     VERSION = "0.1.0"
   end
 end
