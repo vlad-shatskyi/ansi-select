@@ -12,24 +12,27 @@ module Ansi
     end
 
     def select
-      print_options
-      answer = ask_to_choose
-      go_to_line(@options.size)
+      tty = File.open('/dev/tty', 'w+')
+
+      print_options(tty)
+      answer = ask_to_choose(tty)
+      go_to_line(@options.size, stream: tty)
       answer
+    ensure
+      tty.close
     end
 
     private
 
-    def ask_to_choose
+    def ask_to_choose(tty)
       loop do
-        input = listen_carefully_to_keyboard
-
+        input = listen_carefully_to_keyboard(tty)
 
         case input
         when "\e[A", "k"
-          highlight_line(@highlighted - 1) unless @highlighted == 0
+          highlight_line(@highlighted - 1, stream: tty) unless @highlighted == 0
         when "\e[B", "j"
-          highlight_line(@highlighted + 1) unless @highlighted == @options.size - 1
+          highlight_line(@highlighted + 1, stream: tty) unless @highlighted == @options.size - 1
         when "\u0003", "q"
           exit(0)
         when "\r", " "
@@ -38,56 +41,57 @@ module Ansi
       end
     end
 
-    def highlight_line(index)
-      print_line(@highlighted, highlight: false)
-      print_line(index, highlight: true)
+    def highlight_line(index, stream:)
+      print_line(@highlighted, highlight: false, stream: stream)
+      print_line(index, highlight: true, stream: stream)
 
       @highlighted = index
     end
 
-    def print_options
+    def print_options(tty)
       @options.each.with_index do |_, index|
-        print_line(index, highlight: index == @highlighted)
+        print_line(index, highlight: index == @highlighted, stream: tty)
 
         unless index == @options.size - 1
-          STDOUT.print "\r\n"
+          tty.print "\r\n"
           @cursor += 1
         end
       end
 
-      go_to_line(0)
+      go_to_line(0, stream: tty)
     end
 
-    def print_line(index, highlight:)
-      go_to_line(index)
+    def print_line(index, highlight:, stream:)
+      go_to_line(index, stream: stream)
 
       if highlight
-        system "printf \"$(tput rev)#{@options[index]}$(tput rmso)\""
+        system "printf \"$(tput rev)#{@options[index]}$(tput rmso)\" > /dev/tty"
       else
-        STDOUT.print "#{@options[index]}"
+        stream.print "#{@options[index]}"
       end
     end
 
-    def go_to_line(index)
+    def go_to_line(index, stream:)
       if index == @cursor
         # do nothing
       elsif index > @cursor
-        (index - @cursor).times { system "tput cud1" }
+        (index - @cursor).times { system "tput cud1 > /dev/tty" }
       else
-        (@cursor - index).times { system "tput cuu1" }
+        (@cursor - index).times { system "tput cuu1 > /dev/tty" }
       end
 
       @cursor = index
-      print "\r"
+      stream.print "\r"
     end
 
-    def listen_carefully_to_keyboard
-      STDIN.noecho do
-        STDIN.raw do
-          input = STDIN.getc.chr
+    # @param [File] tty
+    def listen_carefully_to_keyboard(tty)
+      tty.noecho do
+        tty.raw do
+          input = tty.getc.chr
           if input == "\e"
-            input << STDIN.read_nonblock(3) rescue nil
-            input << STDIN.read_nonblock(2) rescue nil
+            input << tty.read_nonblock(3) rescue nil
+            input << tty.read_nonblock(2) rescue nil
           end
 
           input
