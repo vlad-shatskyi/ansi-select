@@ -36,7 +36,7 @@ module Ansi
         case input
         when "\u0003", "q"
           exit(0)
-        when CARRIAGE_RETURN_KEY_CODE
+        when CARRIAGE_RETURN_KEY_CODE, " "
           break @options[@highlighted]
         when "\e[A", "k", CURSOR_UP_CODE
           highlight_line(@highlighted - 1, stream: tty) unless @highlighted == 0
