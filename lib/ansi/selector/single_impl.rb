@@ -6,7 +6,7 @@ module Ansi
       private
 
       def prefix(index)
-        ''
+        ' '
       end
 
       def space_handler
