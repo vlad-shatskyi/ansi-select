@@ -64,7 +64,22 @@ module Ansi
 
     # @return [#to_s]
     def ask_to_choose
-      raise NotImplementedError
+      loop do
+        input = listen_carefully_to_keyboard
+
+        case input
+        when "\u0003", "q"
+          exit(0)
+        when " "
+          space_handler
+        when CODES[:carriage_return_key]
+          break carriage_return_handler
+        when "\e[A", "k", CODES[:cursor_up]
+          highlight_line(@highlighted_line_index - 1) unless @highlighted_line_index == 0
+        when "\e[B", "j", CODES[:cursor_down]
+          highlight_line(@highlighted_line_index + 1) unless @highlighted_line_index == @options.size - 1
+        end
+      end
     end
 
     # @param [Fixnum] index
@@ -102,6 +117,14 @@ module Ansi
     end
 
     def prefix(index)
+      raise NotImplementedError
+    end
+
+    def space_handler
+      raise NotImplementedError
+    end
+
+    def carriage_return_handler
       raise NotImplementedError
     end
   end
