@@ -1,11 +1,11 @@
 # coding: utf-8
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'ansi/select/version'
+require 'ansi/selector/version'
 
 Gem::Specification.new do |spec|
   spec.name          = "ansi-select"
-  spec.version       = Ansi::Select::VERSION
+  spec.version       = Ansi::Selector::VERSION
   spec.authors       = ["Volodymyr Shatskyi"]
   spec.email         = ["shockone89@gmail.com"]
 

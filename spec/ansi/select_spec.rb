@@ -1,8 +1,8 @@
 require 'spec_helper'
 
-describe Ansi::Select do
+describe Ansi::Selector do
   it 'has a version number' do
-    expect(Ansi::Select::VERSION).not_to be nil
+    expect(Ansi::Selector::VERSION).not_to be nil
   end
 
   it 'does something useful' do

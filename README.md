@@ -20,10 +20,15 @@ git checkout $(git branch | ansi-select) # The same, but with git branches.
 * A Ruby library.
 
 ```ruby
-require "ansi/select"
+require "ansi/selector"
 
-answer = Ansi::Select.new(["some", "words", "to", "choose", "from"]).select
-print "You chose #{answer}."
+beverage = Ansi::Selector.select(["coffee", "tee"])
+
+puts "Would you like some additions?"
+additions = Ansi::Selector.multi_select(["sugar", "cream", "milk"])
+
+print "Here's your #{beverage}. "
+print "We've also added #{additions.join(', ')}." if additions.present?
 ```
 
 The Ruby interface has an additional benefit of accepting any objects that respond
@@ -32,10 +37,7 @@ to `#to_s` and returning one of them instead of a string.
 
 ## Keyboard
 
-You can use up and down keys or `j`/`k` for navigation, and space or return key for choosing an option.
-If you've changed your mind, you can quit with Ctrl+C or `q`.
-
-
-## TODO
-
-* Support multi-select.
+* Up and down arrows or `j`/`k` to move around.
+* Return to choose.
+* Space to toggle in multi select mode.
+* Ctrl-c or `q` to quit.

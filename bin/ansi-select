@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
-require 'ansi/select'
+require 'ansi/selector'
 
-puts Ansi::Select.new(STDIN.readlines.map(&:chomp)).select
+# TODO: Add multiple.
+puts Ansi::Selector.select(STDIN.readlines.map(&:chomp))

@@ -1,21 +1,21 @@
 module Ansi
-  class Select
+  class Selector
     # @param [Array<#to_s>] options
     #
     # @return [#to_s] option
     def self.select(options)
-      require_relative "select/single_select_impl"
+      require_relative "selector/single_impl"
 
-      SingleSelectImpl.new(options).select
+      SingleImpl.new(options).select
     end
 
     # @param [Array<#to_s>] options
     #
     # @return [Array<#to_s>] option
     def self.multi_select(options)
-      require_relative "select/multi_select_impl"
+      require_relative "selector/multi_impl"
 
-      MultiSelectImpl.new(options).select
+      MultiImpl.new(options).select
     end
   end
 end
