@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 require 'ansi/selector'
 
-# TODO: Add multiple.
-puts Ansi::Selector.select(STDIN.readlines.map(&:chomp))
+method_name = ARGV.include?('--multi') ? :multi_select : :select
+
+puts Ansi::Selector.public_send(method_name, STDIN.readlines.map(&:chomp))
