@@ -13,8 +13,11 @@ There are two options:
 
 ```bash
 echo some words to choose from | tr ' ' '\n' | ansi-select
+
 cd $(ls -d */ | ansi-select) # Go to a visually selected subdirectory.
 git checkout $(git branch | ansi-select) # The same, but with git branches.
+
+rm -r $(ls | ansi-select --multi) # Delete all the selected files.
 ```
 
 * A Ruby library.
