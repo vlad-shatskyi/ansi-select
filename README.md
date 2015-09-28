@@ -1,4 +1,4 @@
-![](https://dl.dropboxusercontent.com/spa/dlqheu39w0arg9q/yaano147.png)
+![](https://dl.dropboxusercontent.com/spa/dlqheu39w0arg9q/gvpg7_fw.png)
 
 ## Installation
 
