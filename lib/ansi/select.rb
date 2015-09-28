@@ -31,6 +31,12 @@ module Ansi
       tty.close
     end
 
+    # @return [Array<#to_s>] option
+    def multi_select
+      @chosen = []
+      select
+    end
+
     private
 
     # @return [File]
@@ -74,8 +80,17 @@ module Ansi
         case input
         when "\u0003", "q"
           exit(0)
-        when CODES[:carriage_return_key], " "
-          break @options[@highlighted_line_index]
+        when " "
+          if @chosen
+            @chosen[@cursor_line_index] = !@chosen[@cursor_line_index]
+            print_line(@cursor_line_index, true)
+          end
+        when CODES[:carriage_return_key]
+          if @chosen
+            break @chosen.map.with_index { |value, index| @options[index] if value }.compact
+          else
+            break @options[@highlighted_line_index]
+          end
         when "\e[A", "k", CODES[:cursor_up]
           highlight_line(@highlighted_line_index - 1) unless @highlighted_line_index == 0
         when "\e[B", "j", CODES[:cursor_down]
@@ -89,10 +104,12 @@ module Ansi
     def print_line(index, highlight)
       go_to_line(index)
 
+      prefix = @chosen ? (@chosen[index] ? '[x] ' : '[ ] ') : ''
+
       if highlight
-        tty.print "#{CODES[:standout_mode]}#{@options[index]}#{CODES[:exit_standout_mode]}"
+        tty.print(CODES[:standout_mode] + prefix + @options[index] + CODES[:exit_standout_mode])
       else
-        tty.print @options[index]
+        tty.print(prefix + @options[index])
       end
     end
 
