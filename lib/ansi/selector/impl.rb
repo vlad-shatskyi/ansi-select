@@ -11,8 +11,9 @@ module Ansi
         carriage_return_key: `tput cr`
       }
 
-      def initialize(options)
+      def initialize(options, formatter)
         @options = options
+        @formatter = formatter
 
         @highlighted_line_index = 0
         @cursor_line_index = 0
@@ -89,9 +90,9 @@ module Ansi
         go_to_line(index)
 
         if highlight
-          tty.print(CODES[:standout_mode] + prefix(index) + @options[index].to_s + CODES[:exit_standout_mode])
+          tty.print(CODES[:standout_mode] + prefix(index) + @formatter.call(@options[index]) + CODES[:exit_standout_mode])
         else
-          tty.print(prefix(index) + @options[index].to_s)
+          tty.print(prefix(index) + @formatter.call(@options[index]))
         end
       end
 

@@ -1,21 +1,30 @@
 module Ansi
   class Selector
-    # @param [Array<#to_s>] options
+    # @param [Array<Object>] options
+    # @param [Proc] formatter
     #
-    # @return [#to_s] option
-    def self.select(options)
+    # @return [Object] option
+    def self.select(options, formatter = default_formatter)
       require_relative "selector/single_impl"
 
-      SingleImpl.new(options).select
+      SingleImpl.new(options, formatter).select
     end
 
-    # @param [Array<#to_s>] options
+    # @param [Array<Object>] options
+    # @param [Proc] formatter
     #
-    # @return [Array<#to_s>] option
-    def self.multi_select(options)
+    # @return [Array<Object>] option
+    def self.multi_select(options, formatter = default_formatter)
       require_relative "selector/multi_impl"
 
-      MultiImpl.new(options).select
+      MultiImpl.new(options, formatter).select
+    end
+
+    private
+
+    # @return [Proc]
+    def default_formatter
+      ->(option) { option.name }
     end
   end
 end

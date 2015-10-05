@@ -34,8 +34,12 @@ print "Here's your #{beverage}. "
 print "We've also added #{additions.join(', ')}." if additions.present?
 ```
 
-The Ruby interface has an additional benefit of accepting any objects that respond
-to `#to_s` and returning one of them instead of a string.
+The Ruby interface has an additional benefit of accepting and returning any objects instead of strings.
+Also, if you'd like a custom formatter for them, you can pass it as a second option (the default one calls `#to_s`):
+
+```ruby
+Ansi::Selector.select(objects, ->(object) { "❤❤❤#{object}❤❤❤" })
+```
 
 
 ## Keyboard
