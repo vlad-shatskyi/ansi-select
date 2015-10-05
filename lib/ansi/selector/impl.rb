@@ -89,9 +89,9 @@ module Ansi
         go_to_line(index)
 
         if highlight
-          tty.print(CODES[:standout_mode] + prefix(index) + @options[index] + CODES[:exit_standout_mode])
+          tty.print(CODES[:standout_mode] + prefix(index) + @options[index].to_s + CODES[:exit_standout_mode])
         else
-          tty.print(prefix(index) + @options[index])
+          tty.print(prefix(index) + @options[index].to_s)
         end
       end
 

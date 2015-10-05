@@ -13,7 +13,7 @@ module Ansi
       private
 
       def prefix(index)
-        @selected_options[index] ? '[x] ' : '[ ] '
+        @selected_options[index] ? ' [x] ' : ' [ ] '
       end
 
       def space_handler
