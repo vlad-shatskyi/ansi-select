@@ -3,6 +3,11 @@ require_relative 'impl'
 module Ansi
   class Selector
     class SingleImpl < Impl
+      def initialize(options, formatter, preselected)
+        super
+        @highlighted_line_index = preselected
+      end
+
       private
 
       def prefix(index)

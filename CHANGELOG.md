@@ -1,3 +1,8 @@
+### 0.2.5
+
+* Allow to preselect options.
+* Format columns.
+
 ### 0.2.4
 
 * Ability to pass a custom formatter.

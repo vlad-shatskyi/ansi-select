@@ -3,11 +3,9 @@ require_relative 'impl'
 module Ansi
   class Selector
     class MultiImpl < Impl
-      def initialize(options, formatter)
+      def initialize(options, formatter, preselected)
         super
-
-        # @type [Array<Boolean>]
-        @selected_options = []
+        @selected_options = preselected
       end
 
       private

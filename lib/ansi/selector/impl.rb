@@ -11,12 +11,20 @@ module Ansi
         carriage_return_key: `tput cr`
       }
 
-      def initialize(options, formatter)
+      def initialize(options, formatter, preselected)
         @options = options
         @formatter = formatter
-
         @highlighted_line_index = 0
         @cursor_line_index = 0
+
+        # Converts options to column-aligned strings.
+        formatted = @options.map(&@formatter).map(&method(:Array))
+        @formatted ||= formatted.map do |f|
+          f.map.with_index do |part, column|
+            width = formatted.map { |fm| fm[column] }.compact.map(&:size).max
+            part.to_s.ljust(width)
+          end.join('  ')
+        end
       end
 
       def select
@@ -88,11 +96,12 @@ module Ansi
       # @param [Boolean] highlight
       def print_line(index, highlight)
         go_to_line(index)
+        text = prefix(index) + @formatted[index]
 
         if highlight
-          tty.print(CODES[:standout_mode] + prefix(index) + @formatter.call(@options[index]) + CODES[:exit_standout_mode])
+          tty.print(CODES[:standout_mode] + text + CODES[:exit_standout_mode])
         else
-          tty.print(prefix(index) + @formatter.call(@options[index]))
+          tty.print(text)
         end
       end
 
