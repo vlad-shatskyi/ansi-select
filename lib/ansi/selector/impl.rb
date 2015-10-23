@@ -16,15 +16,43 @@ module Ansi
         @formatter = formatter
         @highlighted_line_index = 0
         @cursor_line_index = 0
+        @columns = terminal_columns
 
         # Converts options to column-aligned strings.
-        formatted = @options.map(&@formatter).map(&method(:Array))
+        formatted = @options.map(&@formatter).map(&method(:Array)).map { |line| line.map(&method(:strip_ansi_colors)) }
         @formatted ||= formatted.map do |f|
           f.map.with_index do |part, column|
             width = formatted.map { |fm| fm[column] }.compact.map(&:size).max
             part.to_s.ljust(width)
-          end.join('  ')
+          end.join('  ').gsub(/[[:space:]]+$/, '')
         end
+
+        Signal.trap('SIGWINCH', proc do
+          columns = terminal_columns
+          if columns < @columns && !all_options_fit?(columns)
+            # When a buffer gets narrower, the text that doesn't fit into the screen anymore
+            # starts jumping around in a way that makes it hard to predict. In such case we
+            # clear everything and re-print options at the beginning of the buffer to
+            # simplify things.
+            tty.print(`printf '\e[2J'`)
+            tty.print(`tput cup 0 0`)
+          else
+            go_to_line(0)
+          end
+
+          @columns = columns
+          print_options
+          go_to_line(@highlighted_line_index)
+        end)
+      end
+
+      def all_options_fit?(columns)
+        option_indices.map(&method(:final_text_for_line)).map(&:size).all? { |size| size < columns }
+      end
+
+      # @return [Fixnum]
+      def terminal_columns
+        `tput cols`.to_i
       end
 
       def select
@@ -96,13 +124,20 @@ module Ansi
       # @param [Boolean] highlight
       def print_line(index, highlight)
         go_to_line(index)
-        text = prefix(index) + @formatted[index]
+        text = final_text_for_line(index)
 
         if highlight
           tty.print(CODES[:standout_mode] + text + CODES[:exit_standout_mode])
         else
           tty.print(text)
         end
+      end
+
+      # @param [Fixnum] index
+      #
+      # @return [String]
+      def final_text_for_line(index)
+        maybe_add_ellipsis(prefix(index) + @formatted[index])
       end
 
       # @param [Fixnum] index
@@ -127,6 +162,18 @@ module Ansi
         tty.print CODES[:carriage_return_key]
       end
 
+      # @param [String] text
+      def maybe_add_ellipsis(text)
+        text.size >= @columns ? text[0...(@columns - 2)] + '…' : text
+      end
+
+      # @param [String] text
+      #
+      # @return [String]
+      def strip_ansi_colors(text)
+        text.gsub(/\e\[(\d+;?)+m/, '')
+      end
+
       def prefix(index)
         raise NotImplementedError
       end
@@ -137,6 +184,10 @@ module Ansi
 
       def carriage_return_handler
         raise NotImplementedError
+      end
+
+      def option_indices
+        (0...@options.size)
       end
     end
   end
