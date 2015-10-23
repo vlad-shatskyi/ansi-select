@@ -1,3 +1,7 @@
+### 0.3.2
+
+* Fix the issue when the path to `position.sh` was incorrect if run as a library.
+
 ### 0.3.1
 
 * Navigate using `Ctrl+N` and `Ctrl+P`.

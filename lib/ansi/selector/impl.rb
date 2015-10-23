@@ -3,6 +3,8 @@ require "io/console"
 module Ansi
   class Selector
     class Impl
+      POSITION_SCRIPT_PATH = File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "..", "position.sh"))
+
       CODES = {
         standout_mode: `tput rev`,
         exit_standout_mode: `tput rmso`,
@@ -156,7 +158,7 @@ module Ansi
         elsif index > @cursor_line_index
           (index - @cursor_line_index).times { tty.print CODES[:cursor_down] }
         else
-          row_before_going = `bash position.sh`.to_i
+          row_before_going = cursor_row
           (@cursor_line_index - index).times do |step|
             tty.print(`tput ri`) if step >= row_before_going
             tty.print CODES[:cursor_up]
@@ -177,6 +179,11 @@ module Ansi
       # @param [String] text
       def maybe_add_ellipsis(text)
         text.size >= @columns ? text[0...(@columns - 2)] + '…' : text
+      end
+
+      # @return [Fixnum]
+      def cursor_row
+        `bash #{POSITION_SCRIPT_PATH}`.to_i
       end
 
       # @param [String] text
