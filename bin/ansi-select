@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-require 'ansi/selector'
+require_relative '../lib/ansi/selector'
 
 method_name = ARGV.include?('--multi') ? :multi_select : :select
 

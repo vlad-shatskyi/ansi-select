@@ -1,3 +1,7 @@
+### 0.2.6
+
+* Fix default formatter not defined error.
+
 ### 0.2.5
 
 * Allow to preselect options.
