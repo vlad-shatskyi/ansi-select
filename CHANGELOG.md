@@ -1,3 +1,7 @@
+### 0.3.3
+
+* Fix the issue when it couldn't process array formats which include `nil`s.
+
 ### 0.3.2
 
 * Fix the issue when the path to `position.sh` was incorrect if run as a library.

@@ -21,11 +21,11 @@ module Ansi
         @columns = terminal_columns
 
         # Converts options to column-aligned strings.
-        formatted = @options.map(&@formatter).map(&method(:Array)).map { |line| line.map(&method(:strip_ansi_colors)) }
+        formatted = @options.map(&@formatter).map(&method(:Array)).map { |line| line.map(&:to_s).map(&method(:strip_ansi_colors)) }
         @formatted ||= formatted.map do |f|
           f.map.with_index do |part, column|
             width = formatted.map { |fm| fm[column] }.compact.map(&:size).max
-            part.to_s.ljust(width)
+            part.ljust(width)
           end.join('  ')
         end
 
