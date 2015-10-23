@@ -44,7 +44,7 @@ Ansi::Selector.select(objects, ->(object) { "❤❤❤#{object}❤❤❤" })
 
 ## Keyboard
 
-* Up and down arrows or `j`/`k` to move around.
-* Return to choose.
-* Space to toggle in multi select mode.
-* Ctrl-c or `q` to quit.
+* Up and down arrows, `j/k`, or `Ctrl+N/P` to navigate.
+* `Space` to toggle in multi select mode.
+* `Return` to choose.
+* `Ctrl+C` or `q` to quit.

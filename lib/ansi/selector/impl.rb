@@ -108,19 +108,23 @@ module Ansi
 
       # @return [#to_s]
       def ask_to_choose
+        ctrl_p = "\u0010"
+        ctrl_n = "\u000E"
+        ctrl_c = "\u0003"
+
         loop do
           input = listen_carefully_to_keyboard
 
           case input
-          when "\u0003", "q"
+          when ctrl_c, "q"
             exit(0)
           when " "
             space_key_handler
           when CODES[:carriage_return_key]
             break carriage_return_handler
-          when "\e[A", "k", CODES[:cursor_up]
+          when "\e[A", "k", ctrl_p, CODES[:cursor_up]
             scroll_to(@highlighted_line_index - 1)
-          when "\e[B", "j", CODES[:cursor_down]
+          when "\e[B", "j", ctrl_n, CODES[:cursor_down]
             scroll_to(@highlighted_line_index + 1)
           end
         end

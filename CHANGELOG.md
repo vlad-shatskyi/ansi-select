@@ -1,3 +1,8 @@
+### 0.3.1
+
+* Navigate using `Ctrl+N` and `Ctrl+P`.
+* Add the `--version` options.
+
 ### 0.3.0
 
 * Fix default formatter not defined error.

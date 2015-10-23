@@ -1,6 +1,12 @@
 #!/usr/bin/env ruby
 require_relative '../lib/ansi/selector'
 
+unless (ARGV & %w(--version -v)).empty?
+  require_relative '../lib/ansi/selector/version'
+  puts Ansi::Selector::VERSION
+  exit
+end
+
 method_name = ARGV.include?('--multi') ? :multi_select : :select
 
 puts Ansi::Selector.public_send(method_name, STDIN.readlines.map(&:chomp))
