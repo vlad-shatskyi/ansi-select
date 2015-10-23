@@ -14,9 +14,9 @@ module Ansi
         @selected_options[index] ? ' [x] ' : ' [ ] '
       end
 
-      def space_handler
+      def space_key_handler
         @selected_options[@cursor_line_index] = !@selected_options[@cursor_line_index]
-        print_line(@cursor_line_index, true)
+        print_line(@cursor_line_index)
       end
 
       def carriage_return_handler

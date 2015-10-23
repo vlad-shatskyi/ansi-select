@@ -14,7 +14,7 @@ module Ansi
         ' '
       end
 
-      def space_handler
+      def space_key_handler
         # Do nothing
       end
 

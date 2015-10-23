@@ -24,7 +24,7 @@ module Ansi
           f.map.with_index do |part, column|
             width = formatted.map { |fm| fm[column] }.compact.map(&:size).max
             part.to_s.ljust(width)
-          end.join('  ').gsub(/[[:space:]]+$/, '')
+          end.join('  ')
         end
 
         Signal.trap('SIGWINCH', proc do
@@ -37,12 +37,11 @@ module Ansi
             tty.print(`printf '\e[2J'`)
             tty.print(`tput cup 0 0`)
           else
-            go_to_line(0)
+            print_line(0)
           end
 
           @columns = columns
           print_options
-          go_to_line(@highlighted_line_index)
         end)
       end
 
@@ -55,9 +54,16 @@ module Ansi
         `tput cols`.to_i
       end
 
+      # @return [Fixnum]
+      def terminal_lines
+        `tput lines`.to_i
+      end
+
       def select
         print_options
         answer = ask_to_choose
+        # We need to reprint here in order to render the lines that are behind the buffer.
+        range(@highlighted_line_index, @options.size - 1).each(&method(:print_line))
         go_to_line(@options.size)
 
         answer
@@ -73,16 +79,16 @@ module Ansi
       end
 
       def print_options
-        @options.each.with_index do |_, index|
-          print_line(index, index == @highlighted_line_index)
+        @options[0...terminal_lines].each.with_index do |_, index|
+          print_line(index)
 
           unless index == @options.size - 1
-            tty.print $/ # This strange thing is a cross-platform new line.
+            tty.print $/ # This global variable is a cross-platform new line.
             @cursor_line_index += 1
           end
         end
 
-        go_to_line(0)
+        print_line(0)
       end
 
       # @return [String]
@@ -109,43 +115,34 @@ module Ansi
           when "\u0003", "q"
             exit(0)
           when " "
-            space_handler
+            space_key_handler
           when CODES[:carriage_return_key]
             break carriage_return_handler
           when "\e[A", "k", CODES[:cursor_up]
-            highlight_line(@highlighted_line_index - 1) unless @highlighted_line_index == 0
+            scroll_to(@highlighted_line_index - 1)
           when "\e[B", "j", CODES[:cursor_down]
-            highlight_line(@highlighted_line_index + 1) unless @highlighted_line_index == @options.size - 1
+            scroll_to(@highlighted_line_index + 1)
           end
         end
       end
 
       # @param [Fixnum] index
-      # @param [Boolean] highlight
-      def print_line(index, highlight)
+      def scroll_to(index)
+        indices_to_reprint = range(@highlighted_line_index, index)
+        @highlighted_line_index = indices_to_reprint.last
+        indices_to_reprint.each(&method(:print_line))
+      end
+
+      # @param [Fixnum] index
+      def print_line(index)
         go_to_line(index)
         text = final_text_for_line(index)
 
-        if highlight
+        if index == @highlighted_line_index
           tty.print(CODES[:standout_mode] + text + CODES[:exit_standout_mode])
         else
           tty.print(text)
         end
-      end
-
-      # @param [Fixnum] index
-      #
-      # @return [String]
-      def final_text_for_line(index)
-        maybe_add_ellipsis(prefix(index) + @formatted[index])
-      end
-
-      # @param [Fixnum] index
-      def highlight_line(index)
-        print_line(@highlighted_line_index, false)
-        print_line(index, true)
-
-        @highlighted_line_index = index
       end
 
       # @param [Fixnum] index
@@ -155,11 +152,22 @@ module Ansi
         elsif index > @cursor_line_index
           (index - @cursor_line_index).times { tty.print CODES[:cursor_down] }
         else
-          (@cursor_line_index - index).times { tty.print CODES[:cursor_up] }
+          row_before_going = `bash position.sh`.to_i
+          (@cursor_line_index - index).times do |step|
+            tty.print(`tput ri`) if step >= row_before_going
+            tty.print CODES[:cursor_up]
+          end
         end
 
         @cursor_line_index = index
         tty.print CODES[:carriage_return_key]
+      end
+
+      # @param [Fixnum] index
+      #
+      # @return [String]
+      def final_text_for_line(index)
+        maybe_add_ellipsis(prefix(index) + @formatted[index])
       end
 
       # @param [String] text
@@ -178,7 +186,7 @@ module Ansi
         raise NotImplementedError
       end
 
-      def space_handler
+      def space_key_handler
         raise NotImplementedError
       end
 
@@ -188,6 +196,10 @@ module Ansi
 
       def option_indices
         (0...@options.size)
+      end
+
+      def range(from, to)
+        ((from <= to) ? from.upto(to) : from.downto(to)).to_a.select { |index| (0...@options.size).cover?(index) }
       end
     end
   end
