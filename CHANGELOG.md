@@ -1,3 +1,7 @@
+### 0.3.4
+
+* Always use `/bin/stty` instead of the one from `PATH`.
+
 ### 0.3.3
 
 * Fix the issue when it couldn't process array formats which include `nil`s.
